@@ -3,25 +3,29 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write    # cần để action push commit trở lại repo
+
 jobs:
   set-date:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set formatted date
-        id: date
+
+      - name: Set formatted date (UTC)
         run: |
-          echo "DATE=$(date -u '+%B %e, %Y')" >> $GITHUB_OUTPUT
+          echo "DATE=$(date -u '+%B %e, %Y')" >> $GITHUB_ENV
+
       - name: Update files with placeholder
         run: |
           FILES="terms.html privacy.html"
           for f in $FILES; do
             if [ -f "$f" ]; then
-              # replace placeholder <!-- LAST_UPDATED --> with the date string
-              sed -i "s/<!-- LAST_UPDATED -->/Last updated: ${DATE} - Tran Quang Hiep/" "$f"
+              sed -i "s/<!-- LAST_UPDATED -->/Last updated: $DATE - Tran Quang Hiep/" "$f"
             fi
           done
+
       - name: Commit changes
         run: |
           if [ -n "$(git status --porcelain)" ]; then
